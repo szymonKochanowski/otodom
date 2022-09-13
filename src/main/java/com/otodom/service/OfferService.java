@@ -12,9 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -27,7 +26,7 @@ public class OfferService {
     private LinkService linkService;
 
     public Offer getOfferByCityName(String cityName, Double startPriceForSquareMeter, Double endPriceForSquareMeter) throws IOException {
-        ExecutorService executorService = Executors.newFixedThreadPool(30);
+        long start = System.currentTimeMillis();
 
         String content = getWebContentForSpecifiedCityAndPriceForSquareMeter(cityName, startPriceForSquareMeter, endPriceForSquareMeter);
         List<Link> linkList = new ArrayList<>();
@@ -50,15 +49,20 @@ public class OfferService {
         offer.setLinks(linkList);
         offer.setNumberOfLinks(linkList.size());
         offerRepository.save(offer);
+
+        long end = System.currentTimeMillis();
+        System.out.println("Time needed to perform get is : " + (end - start) + " milliseconds.");
+
         return offer;
     }
 
     private String getWebContentForSpecifiedCityAndPriceForSquareMeter(String cityName, Double startPriceForSquareMeter, Double endPriceForSquareMeter) throws IOException {
         String linkToAllOffer = "https://www.otodom.pl/pl/oferty/sprzedaz/mieszkanie/";
+        String distance = "?distanceRadius=0";
         String startPriceURLRestriction = "&pricePerMeterMin=";
-        String endPriceURLRestriction = "?pricePerMeterMax=";
+        String endPriceURLRestriction = "&pricePerMeterMax=";
         String offersLimit = "&limit=100";
-        URL otodomURL = new URL( linkToAllOffer + cityName + startPriceURLRestriction + startPriceForSquareMeter + endPriceURLRestriction + endPriceForSquareMeter + offersLimit);
+        URL otodomURL = new URL( linkToAllOffer + cityName + distance + startPriceURLRestriction + startPriceForSquareMeter + endPriceURLRestriction + endPriceForSquareMeter + offersLimit);
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(otodomURL.openStream()));
 

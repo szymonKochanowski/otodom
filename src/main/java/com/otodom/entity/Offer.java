@@ -5,11 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Data
@@ -22,8 +19,6 @@ public class Offer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-//    @NotNull
-//    @NotBlank
     @OneToMany(cascade = CascadeType.DETACH)
     @JoinColumn(name = "offer_id", updatable = false, insertable = false)
     private List<Link> links;
@@ -32,7 +27,5 @@ public class Offer {
 
     @Column(name = "number_of_links")
     private Integer numberOfLinks;
-
-
 
 }
