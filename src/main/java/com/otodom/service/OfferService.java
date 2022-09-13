@@ -3,6 +3,7 @@ package com.otodom.service;
 import com.otodom.entity.Link;
 import com.otodom.entity.Offer;
 import com.otodom.repository.OfferRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,8 +13,11 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
+@Slf4j
 public class OfferService {
 
     @Autowired
@@ -22,8 +26,10 @@ public class OfferService {
     @Autowired
     private LinkService linkService;
 
-    public Offer getOfferByCityName(String cityName) throws IOException {
-        String content = getWebContentForSpecifiedCity(cityName);
+    public Offer getOfferByCityName(String cityName, Double startPriceForSquareMeter, Double endPriceForSquareMeter) throws IOException {
+        ExecutorService executorService = Executors.newFixedThreadPool(30);
+
+        String content = getWebContentForSpecifiedCityAndPriceForSquareMeter(cityName, startPriceForSquareMeter, endPriceForSquareMeter);
         List<Link> linkList = new ArrayList<>();
         Offer offer = new Offer();
         offer.setCreatedOn(LocalDateTime.now());
@@ -35,7 +41,7 @@ public class OfferService {
             if (i < 0) {
                 break;
             }
-            String link = getString(content, i);
+            String link = getLink(content, i);
             linkObject.setURL(link);
             Link newLink = linkService.addNewLink(offer.getId(), linkObject);
             linkList.add(newLink);
@@ -47,27 +53,35 @@ public class OfferService {
         return offer;
     }
 
-    private String getWebContentForSpecifiedCity(String cityName) throws IOException {
-        URL otodomURL = new URL("https://www.otodom.pl/pl/oferty/sprzedaz/mieszkanie/" + cityName);
+    private String getWebContentForSpecifiedCityAndPriceForSquareMeter(String cityName, Double startPriceForSquareMeter, Double endPriceForSquareMeter) throws IOException {
+        String linkToAllOffer = "https://www.otodom.pl/pl/oferty/sprzedaz/mieszkanie/";
+        String startPriceURLRestriction = "&pricePerMeterMin=";
+        String endPriceURLRestriction = "?pricePerMeterMax=";
+        String offersLimit = "&limit=100";
+        URL otodomURL = new URL( linkToAllOffer + cityName + startPriceURLRestriction + startPriceForSquareMeter + endPriceURLRestriction + endPriceForSquareMeter + offersLimit);
         BufferedReader in = new BufferedReader(
                 new InputStreamReader(otodomURL.openStream()));
 
         StringBuilder stringBuilder = new StringBuilder();
         String inputLine;
-        while ((inputLine = in.readLine()) != null) {
-            stringBuilder.append(inputLine);
-            stringBuilder.append(System.lineSeparator());
+        try {
+            while ((inputLine = in.readLine()) != null) {
+                stringBuilder.append(inputLine);
+                stringBuilder.append(System.lineSeparator());
+            }
+        } catch (Exception e) {
+            log.error("Content of page is empty!");
+        } finally {
+            in.close();
         }
-        in.close();
         return stringBuilder.toString();
     }
 
-    private static String getString(String content, int i) {
+    private static String getLink(String content, int i) {
         String substring = content.substring(i);
         String prefixToWebsite = "https://www.otodom.pl/";
         String suffixToWebsite = substring.split(" class")[0];
-        String link = prefixToWebsite.concat(suffixToWebsite);
-        return link;
+        return prefixToWebsite.concat(suffixToWebsite);
     }
 
 }

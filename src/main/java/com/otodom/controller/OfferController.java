@@ -21,8 +21,14 @@ public class OfferController {
     private OfferService offerService;
 
     @GetMapping
-    public ResponseEntity<Offer> getFromWebsiteOfferListByCityName(@RequestParam String cityName) throws IOException {
-        log.info("Start to get offers from website for city with name: " + cityName);
-        return ResponseEntity.ok(offerService.getOfferByCityName(cityName));
+    public ResponseEntity<Offer> getFromWebsiteOfferListByCityNameAndSquareMeterPriceBetween(
+            @RequestParam String cityName,
+            @RequestParam(required = false) Double startSquareMeterPrice,
+            @RequestParam(required = false) Double endSquareMeterPrice) throws IOException {
+        log.info("Start to get offers from website for city with name '" + cityName + "' and price between " + startSquareMeterPrice + " and " + endSquareMeterPrice);
+        Double startPriceForSquareMeter = startSquareMeterPrice != null ? startSquareMeterPrice : 0.0;
+        Double endPriceForSquareMeter = endSquareMeterPrice != null ? endSquareMeterPrice : 12000.0;
+        return ResponseEntity.ok(offerService.getOfferByCityName(cityName, startPriceForSquareMeter, endPriceForSquareMeter));
     }
+
 }
