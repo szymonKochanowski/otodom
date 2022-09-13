@@ -6,3 +6,5 @@ The main aim of the application is to download a list of offers with apartments 
 The application allows users to choose a specific city, with specified prices for square meters.
 The default limit of offers is set for 100 plus 3 promoted offers.
 The city name can not contain capital letters and polish marks.
+
+Project line code test coverage is 92%.

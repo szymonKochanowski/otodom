@@ -74,7 +74,7 @@ public class OfferService {
                 stringBuilder.append(System.lineSeparator());
             }
         } catch (Exception e) {
-            log.error("Content of page is empty!");
+            log.error("Bad URL or content of page is empty!");
         } finally {
             in.close();
         }
